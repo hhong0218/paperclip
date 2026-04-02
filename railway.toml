@@ -1,4 +1,4 @@
 [deploy]
-startCommand = "node --import ./server/node_modules/tsx/dist/loader.mjs server/dist/index.js"
+startCommand = "docker-entrypoint.sh node --import ./server/node_modules/tsx/dist/loader.mjs server/dist/index.js"
 healthcheckPath = "/setup/healthz"
 healthcheckTimeout = 300
