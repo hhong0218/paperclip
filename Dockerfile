@@ -53,18 +53,26 @@ FROM base AS production
 ARG USER_UID=1000
 ARG USER_GID=1000
 WORKDIR /app
-COPY --chown=node:node --from=build /app /app
-RUN npm install --global --omit=dev @anthropic-ai/claude-code@latest @openai/codex@latest opencode-ai \
+COPY --from=build /app /app
+
+# Install global tools
+RUN npm install --global --omit=dev @anthropic-ai/claude-code@latest @openai/codex@latest opencode-ai tsx \
   && mkdir -p /paperclip \
   && chown node:node /paperclip
 
-COPY scripts/docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+# Install wrapper
+WORKDIR /wrapper
+COPY railway-wrapper/package.json /wrapper/package.json
+RUN npm install --omit=dev && npm cache clean --force
+COPY railway-wrapper/src /wrapper/src
+COPY railway-wrapper/scripts/entrypoint.sh /wrapper/entrypoint.sh
+COPY railway-wrapper/scripts/bootstrap-ceo.mjs /wrapper/template/bootstrap-ceo.mjs
+RUN chmod +x /wrapper/entrypoint.sh
+
+RUN chown -R node:node /app /paperclip /wrapper
 
 ENV NODE_ENV=production \
   HOME=/paperclip \
-  HOST=0.0.0.0 \
-  PORT=3100 \
   SERVE_UI=true \
   PAPERCLIP_HOME=/paperclip \
   PAPERCLIP_INSTANCE_ID=default \
@@ -76,6 +84,5 @@ ENV NODE_ENV=production \
   OPENCODE_ALLOW_ALL_MODELS=true
 
 EXPOSE 3100
-
-ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["node", "--import", "./server/node_modules/tsx/dist/loader.mjs", "server/dist/index.js"]
+ENTRYPOINT ["/wrapper/entrypoint.sh"]
+CMD ["node", "/wrapper/src/server.js"]
