@@ -75,7 +75,6 @@ ENV NODE_ENV=production \
   PAPERCLIP_DEPLOYMENT_EXPOSURE=private \
   OPENCODE_ALLOW_ALL_MODELS=true
 
-VOLUME ["/paperclip"]
 EXPOSE 3100
 
 # Run as non-root user to allow Claude Code --dangerously-skip-permissions
