@@ -78,5 +78,7 @@ ENV NODE_ENV=production \
 VOLUME ["/paperclip"]
 EXPOSE 3100
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+# Run as non-root user to allow Claude Code --dangerously-skip-permissions
+USER node
+
 CMD ["node", "--import", "./server/node_modules/tsx/dist/loader.mjs", "server/dist/index.js"]
